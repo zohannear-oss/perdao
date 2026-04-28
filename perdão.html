@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #7ea8c4;
+    --lilac: #b8a8d4;
+    --blush: #d4a8b8;
+    --white: #fafafa;
+    --grey-light: #f0eff5;
+    --grey-mid: #c8c4d4;
+    --grey-dark: #5a5870;
+    --text: #2e2c3a;
+    --text-soft: #6e6b80;
+    --card-bg: rgba(255,255,255,0.72);
+    --shadow: 0 8px 40px rgba(120,110,160,0.10);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── CANVAS BACKGROUND ── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--lilac);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 1s 0.3s ease forwards;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.6rem, 8vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.15;
+    color: var(--text);
+    opacity: 0;
+    animation: fadeUp 1s 0.6s ease forwards;
+    max-width: 800px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--blue);
+  }
+
+  .hero-sub {
+    font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+    font-weight: 300;
+    color: var(--text-soft);
+    margin-top: 1.4rem;
+    max-width: 460px;
+    line-height: 1.7;
+    opacity: 0;
+    animation: fadeUp 1s 0.9s ease forwards;
+  }
+
+  .btn-main {
+    margin-top: 3rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 2.4rem;
+    border: 1.5px solid var(--blue);
+    background: transparent;
+    color: var(--blue);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    animation: fadeUp 1s 1.2s ease forwards;
+    text-decoration: none;
+  }
+  .btn-main:hover {
+    background: var(--blue);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(126,168,196,0.28);
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0;
+    animation: fadeUp 1s 1.8s ease forwards;
+  }
+  .scroll-hint span {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey-mid);
+  }
+  .scroll-line {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, var(--grey-mid), transparent);
+    animation: scrollPulse 2s 2s infinite;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 1.5rem;
+    max-width: 760px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    color: var(--grey-mid);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    font-weight: 300;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 2rem;
+  }
+  .section-label em { color: var(--lilac); font-style: italic; }
+
+  .card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(200,196,212,0.3);
+    border-radius: 20px;
+    padding: 2.4rem 2.8rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.2rem;
+  }
+
+  .card p {
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
+    font-weight: 300;
+    line-height: 1.85;
+    color: var(--text-soft);
+  }
+  .card p + p { margin-top: 1.2rem; }
+
+  .card strong { color: var(--text); font-weight: 500; }
+
+  /* Divider */
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(to right, var(--blue), var(--lilac));
+    margin: 0 auto 5rem;
+    opacity: 0;
+    transition: opacity 0.8s;
+  }
+  .divider.visible { opacity: 1; }
+
+  /* ── IDENTITY SECTION SPECIAL ── */
+  #identity .section-label { color: var(--blue); }
+
+  .identity-highlight {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.4;
+    color: var(--text);
+    text-align: center;
+    padding: 2rem;
+    border-left: 3px solid var(--lilac);
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(184,168,212,0.07), rgba(126,168,196,0.07));
+    margin-bottom: 1.2rem;
+  }
+
+  /* ── COMMITMENT ── */
+  .commitment-list {
+    list-style: none;
+    margin-top: 1.2rem;
+  }
+  .commitment-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(200,196,212,0.2);
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+  .commitment-list li:last-child { border-bottom: none; }
+  .commitment-list li::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--blue);
+    border-radius: 50%;
+    margin-top: 0.5rem;
+  }
+
+  /* ── FUTURE ── */
+  #future { text-align: center; }
+  #future .section-label { text-align: center; }
+
+  .future-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  .future-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(200,196,212,0.3);
+    border-radius: 16px;
+    padding: 2rem 1.4rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  .future-card:hover { transform: translateY(-4px); }
+  .future-card .icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  .future-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+  }
+  .future-card p {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  /* ── ENDING ── */
+  #ending {
+    text-align: center;
+    padding-bottom: 10rem;
+  }
+  #ending .section-label { text-align: center; }
+
+  .forgive-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 3rem;
+    background: linear-gradient(135deg, var(--blue), var(--lilac));
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    margin-top: 2rem;
+    box-shadow: 0 8px 32px rgba(126,168,196,0.3);
+  }
+  .forgive-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 40px rgba(126,168,196,0.4);
+  }
+
+  .love-reveal {
+    display: none;
+    margin-top: 2.4rem;
+    animation: fadeUp 0.8s ease forwards;
+  }
+  .love-reveal.show { display: block; }
+
+  .love-reveal p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--text);
+    font-style: italic;
+  }
+
+  /* ── BEAR ── */
+  #bear-btn {
+    position: fixed;
+    bottom: 1.6rem;
+    right: 1.6rem;
+    z-index: 100;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(200,196,212,0.3);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(120,110,160,0.15);
+    transition: transform 0.3s ease;
+    border: none;
+    animation: float 3s ease-in-out infinite;
+  }
+  #bear-btn:hover { transform: scale(1.12); }
+
+  .bear-tooltip {
+    position: fixed;
+    bottom: 5rem;
+    right: 1.6rem;
+    z-index: 101;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(200,196,212,0.3);
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    font-size: 0.78rem;
+    color: var(--text-soft);
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+  .bear-tooltip.show { opacity: 1; transform: translateY(0); }
+
+  /* ── SURPRISE MODAL ── */
+  #surprise-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(46,44,58,0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  #surprise-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #surprise-card {
+    background: #fff;
+    border-radius: 24px;
+    max-width: 560px;
+    width: 100%;
+    padding: 3rem 3.2rem;
+    box-shadow: 0 24px 80px rgba(80,70,120,0.18);
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+  #surprise-overlay.open #surprise-card {
+    transform: scale(1) translateY(0);
+  }
+
+  .surprise-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.4rem;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--grey-mid);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .surprise-close:hover { color: var(--text); }
+
+  .surprise-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--lilac);
+    margin-bottom: 1rem;
+  }
+  .surprise-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 1.8rem;
+    line-height: 1.3;
+  }
+  .surprise-body p {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-soft);
+    line-height: 1.85;
+    margin-bottom: 1.1rem;
+  }
+  .surprise-body p:last-child { margin-bottom: 0; }
+  .surprise-body strong { color: var(--text); font-weight: 500; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .card { padding: 1.8rem 1.6rem; }
+    #surprise-card { padding: 2.2rem 1.8rem; }
+    .future-cards { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-eyebrow">Para Liam</p>
+  <h1 class="hero-title">Liam, eu <em>falhei</em> com você.</h1>
+  <p class="hero-sub">Mas quero me desculpar da forma mais sincera possível.</p>
+  <a href="#apology" class="btn-main">Clique aqui, por favor</a>
+  <div class="scroll-hint">
+    <span>role</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- SECTION 1: APOLOGY -->
+<section id="apology" class="section">
+  <p class="section-number">01</p>
+  <h2 class="section-label">O que aconteceu<br><em>ontem à noite</em></h2>
+  <div class="card">
+    <p>Ontem à noite, eu errei com você.</p>
+    <p>Usar o seu pronome errado foi desrespeitoso. Não existe outra forma de nomear o que aconteceu.</p>
+    <p>Eu sei que isso machuca. E eu sei que pedir desculpas não apaga imediatamente o erro.</p>
+    <p>Eu reconheço, com clareza e que você merece respeito completo. Sempre. E ontem eu deixei a desejar.</p>
+    <p>Não vou explicar. Não vou justificar. O que aconteceu foi errado, e reconhecer isso é o mínimo que eu posso fazer.</p>
+  </div>
+</section>
+
+<div class="divider" data-observe></div>
+
+<!-- SECTION 2: IDENTITY -->
+<section id="identity" class="section">
+  <p class="section-number">02</p>  
+  <h2 class="section-label">Quem você é</h2>
+  <div class="identity-highlight">Você é o meu Liam.<br> </div>
+  <div class="card">
+    <p>Meu namorado , Meu rei , Meu amor , Meu oxigênio , MEU SOOWHA, Meu Futuro esposo, Meu Destino , Meu sonho, Meu anjo, Meu garoto, Meu lindo, Meu querido, Meu motivo, Meu presente, Meu amanhã, Meu sorriso, Meu lar, Meu orgulho, Meu príncipe perfeito, Meu único e verdadeiro amor, Meu universo, Meu Maltês, MEU Homem!</p>
+    <p>QUERO SER : Seu namorado, seu rei, seu amor, seu oxigênio, SEU YOHAN, Seu Futuro Esposo, seu destino, seu sonho, seu anjo, seu garoto, seu lindo, seu querido, seu motivo, seu presente, seu amanhã, seu sorriso, seu lar, seu orgulho, seu príncipe perfeito, seu único e verdadeiro amor, seu universo, Seu Ursinho, SEU homem! </p>
+    <p>Sua identidade merece respeito principalmente vindo de mim.</p>
+    <p>Eu reconheço quem você é. Eu escolho você. E errar nisso dói, é uma contradição com todo amor que sinto e tudo que penso sobre você.</p>
+    <p> Quero demonstrar meu respeito por você em minhas atitudes.</p>
+  </div>
+</section>
+
+<div class="divider" data-observe></div>
+
+<!-- SECTION 3: COMMITMENT -->
+<section id="commitment" class="section">
+  <p class="section-number">03</p>
+  <h2 class="section-label">O que quero<br><em>mudar</em></h2>
+  <div class="card">
+    <p>Não quero apenas dizer que sinto muito. Quero agir melhor para você.</p>
+    <p>Isso significa:</p>
+    <ul class="commitment-list">
+      <li>Entender que é o mínimo. E ontem eu fiquei abaixo disso.</li>
+      <li>Continuar te amando e te reconhecendo de um jeito que torne esse tipo de erro impossível.</li>
+    </ul>
+    <p>Eu não estou pedindo para que você esqueça o que aconteceu. Estou dizendo que estou trabalhando para merecer a confiança que você deposita em mim.</p>
+  </div>
+</section>
+
+<div class="divider" data-observe></div>
+
+<!-- SECTION 4: FUTURE -->
+<section id="future" class="section">
+  <p class="section-number">04</p>
+  <h2 class="section-label">Sobre o futuro</h2>
+  <p style="font-size:1rem;font-weight:300;color:var(--text-soft);margin-bottom:2rem;line-height:1.7;">
+    Eu levo você á sério, todos os os meus planos são você.
+  </p>
+  <div class="future-cards">
+    <div class="future-card">
+      <div class="icon">🪐</div>
+      <h3>Presença</h3>
+      <p>Quero estar contigo, ao seu lado. Em presença fisica.</p>
+    </div>
+    <div class="future-card">
+      <div class="icon">🤍</div>
+      <h3>Compromisso</h3>
+      <p>É com você que penso quando imagino construir algo duradouro.</p>
+    </div>
+    <div class="future-card">
+      <div class="icon">🏡</div>
+      <h3>Família</h3>
+      <p>Algo que quero planejar com você.</p>
+    </div>
+    <div class="future-card">
+      <div class="icon">💍</div>
+      <h3>Casamento</h3>
+      <p>É com você que penso quando imagino esse passo.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1.4rem;text-align:left;">
+    <p>Eu te amo e quero futuro sério. mas tenho uma pergunta a fazer </p>
+  </div>
+</section>
+
+<div class="divider" data-observe></div>
+
+<!-- SECTION 5: ENDING -->
+<section id="ending" class="section">
+  <p class="section-number">05</p>
+  <h2 class="section-label">Uma pergunta</h2>
+  <div class="card" style="margin-bottom:1.4rem;">
+    <p>Eu errei. Reconheço. E quero provar, com atitude e com o tempo.</p>
+  </div>
+  <button class="forgive-btn" id="forgive-btn">Me perdoa? 🤍</button>
+  <div class="love-reveal" id="love-reveal">
+    <p>Eu te amo, meu Liam.<br>E quero provar isso <br>a cada batida do meu coração</p>
+  </div>
+</section>
+
+<!-- BEAR BUTTON -->
+<button id="bear-btn" title="Uma surpresa">🐻</button>
+<div class="bear-tooltip" id="bear-tooltip">Tem algo para você aqui ✦</div>
+
+<!-- SURPRISE MODAL -->
+<div id="surprise-overlay">
+  <div id="surprise-card">
+    <button class="surprise-close" id="surprise-close">✕</button>
+    <p class="surprise-eyebrow">Algo importante</p>
+    <h2 class="surprise-title">Quero te contar uma coisa.</h2>
+    <div class="surprise-body">
+      <p>Eu quero muito que você converse com minha mãe o quanto antes, para que possamos nos ver antes de agosto.</p>
+      <p>Entre a <strong>possível premiação do intercâmbio</strong>, o dinheiro que consegui juntar e a ajuda financeira que recebi do meu (pa)pai.</p>
+      <p>Isso importa para mim porque eu quero estar contigo de verdade.</p>
+      <p>Não estou falando apenas sobre estar fisicamente.<br>falo sobre <strong>construir algo nosso, OBS : A Nipolivrocaféteria </strong>, com planejamento, esforço e beijinhos.</p>
+      <p>Quero te ver.<br>Quero viver isso de verdade.<br>E tomar essas decisões <strong>com você (dica da novidade : ursinho)</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── CANVAS PARTICLES ── */
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  const COLORS = ['rgba(126,168,196,0.18)', 'rgba(184,168,212,0.15)', 'rgba(212,168,184,0.12)'];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.r = Math.random() * 140 + 60;
+      this.vx = (Math.random() - 0.5) * 0.18;
+      this.vy = (Math.random() - 0.5) * 0.18;
+      this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      this.alpha = Math.random() * 0.6 + 0.2;
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < -this.r) this.x = W + this.r;
+      if (this.x > W + this.r) this.x = -this.r;
+      if (this.y < -this.r) this.y = H + this.r;
+      if (this.y > H + this.r) this.y = -this.r;
+    }
+    draw() {
+      const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+      g.addColorStop(0, this.color);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+    }
+  }
+
+  function initParticles() {
+    particles = [];
+    const count = Math.min(18, Math.floor(W * H / 60000));
+    for (let i = 0; i < count; i++) particles.push(new Particle());
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#f5f3fa');
+    bg.addColorStop(0.5, '#eef2f8');
+    bg.addColorStop(1, '#f8f3f6');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(loop);
+  }
+
+  resize(); initParticles(); loop();
+  window.addEventListener('resize', () => { resize(); initParticles(); });
+
+  /* ── INTERSECTION OBSERVER ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.section, .divider').forEach(el => observer.observe(el));
+
+  /* ── FORGIVE BUTTON ── */
+  document.getElementById('forgive-btn').addEventListener('click', function() {
+    this.style.opacity = '0.6';
+    this.style.pointerEvents = 'none';
+    const reveal = document.getElementById('love-reveal');
+    reveal.classList.add('show');
+    reveal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  /* ── BEAR TOOLTIP ── */
+  const bearBtn = document.getElementById('bear-btn');
+  const tooltip = document.getElementById('bear-tooltip');
+  let tooltipShown = false;
+
+  setTimeout(() => {
+    tooltip.classList.add('show');
+    tooltipShown = true;
+    setTimeout(() => tooltip.classList.remove('show'), 3500);
+  }, 4000);
+
+  bearBtn.addEventListener('mouseenter', () => tooltip.classList.add('show'));
+  bearBtn.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+
+  /* ── SURPRISE MODAL ── */
+  const overlay = document.getElementById('surprise-overlay');
+  const closeBtn = document.getElementById('surprise-close');
+
+  bearBtn.addEventListener('click', () => overlay.classList.add('open'));
+  closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+</script>
+</body>
+</html>
